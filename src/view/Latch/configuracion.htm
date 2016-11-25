@@ -1,0 +1,49 @@
+<%-
+local driver = require "luasql.sqlite3"
+env = assert (driver.sqlite3())
+con = assert (env:connect("/root/Latch/Latch.db"))
+cur = assert (con:execute"SELECT applicationId, secretkey, tiempoComprobacion FROM Configuracion")
+row = cur:fetch ({}, "a")
+-%>
+<%+header%>
+<% local eating = luci.model.uci.cursor():get("current", "ice", "flavor") %>
+<link rel="stylesheet" href="/estilo.css"/>
+<div class="cbi-map" id="cbi-system">
+  <h2><a id="content" name="content">Configuration</a></h2>
+  <div class="cbi-map-descr">Configuration parameters of the plugin</div>
+  <fieldset class="cbi-content">
+    <form action="<%=REQUEST_URI%>" method="get" class="cbi-section-node cbi-section-node-tabbed">
+      <div class="cbi-value">
+        <label class="cbi-value-title" for="applicationId">Application ID</label>
+        <div class="cbi-value-field">
+          <input class="" type="text" id="applicationId" name="applicationId" value='<%- if row.applicationId== nil then io.write("") else io.write(row.applicationId) end -%>'/>
+        </div>
+      </div>
+      <div class="cbi-value">
+        <label class="cbi-value-title" for="secretkey">Secret Key</label>
+        <div class="cbi-value-field">
+          <input class="" type="text" id="password" name="secretkey" value="<%- if row.secretkey == nil then io.write("") else io.write(row.secretkey) end -%>"/>
+        </div>
+      </div>
+      <div class="cbi-value">
+        <label class="cbi-value-title" for="tiempoComprobacion">Reload time</label>
+        <div class="cbi-value-field">
+          <input class="" type="text" id="tiempoComprobacion" name="tiempoComprobacion" value="<%- if row.tiempoComprobacion == nil then io.write("") else io.write(row.tiempoComprobacion) end -%>"/>
+          <span id="msj">Time in seconds to reload device table</span>
+	  <span id="error" style="display:none;">The minimun time valor is 15s and we recomend 20s</span>
+	</div>
+      </div>
+      <div class="cbi-page-actions">
+    	  <input type="submit" id="guardar" value="Guardar" class="cbi-button cbi-button-save"/>
+      </div>
+    </form>
+  </fieldset>
+</div>
+<script type="text/javascript" src="/configuracion.js"></script>
+<%-
+-- close everything
+cur:close() -- already closed because all the result set was consumed
+con:close()
+env:close()
+-%>
+<%+footer%>

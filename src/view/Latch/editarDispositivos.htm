@@ -1,0 +1,65 @@
+<%-
+local driver = require "luasql.sqlite3"
+env = assert (driver.sqlite3())
+con = assert (env:connect("/root/Latch/Latch.db"))
+cur = assert (con:execute("SELECT alias, dispositivo, estado, permanente, ultimaConexion FROM Dispositivos WHERE dispositivo ='"..luci.http.formvalue("editar").."'"))
+row = cur:fetch ({}, "a")
+-%>
+  <%+header%>
+    <% local eating = luci.model.uci.cursor():get("current", "ice", "flavor") %>
+      <link rel="stylesheet" href="/estilo.css"/>
+      <div class="cbi-map" id="cbi-ice_cream">
+        <h2><a id="content" name="content">Device editing</a></h2>
+        <div class="cbi-map-descr">
+          <fieldset class="cbi-content">
+            <legend>Device</legend>
+            <form action="<%=REQUEST_URI%>" method="get" onsubmit="aviso();">
+              <div class="cbi-value">
+                <label class="cbi-value-title" for="alias">Alias</label>
+                <div class="cbi-value-field">
+                  <input id="alias" type="text" name="alias" value="<%- io.write(row.alias) -%>" />
+                </div>
+              </div>
+              <div class="cbi-value">
+                <label class="cbi-value-title" for="dispositivo">Device</label>
+                <div class="cbi-value-field" name="dispositivo">
+                  <%- io.write(row.dispositivo) -%>
+                </div>
+              </div>
+              <div class="cbi-value">
+                <label class="cbi-value-title" for="estado">Status</label>
+                <div class="cbi-value-field" name="estado">
+                  <span><%- io.write(row.estado) -%></span>
+                </div>
+              </div>
+              <div class="cbi-value">
+                <label class="cbi-value-title" for="conexion">Last connection</label>
+                <div class="cbi-value-field" name="conexion">
+                  <%- io.write(row.ultimaConexion) -%>
+                </div>
+              </div>
+              <div class="cbi-value">
+                <label class="cbi-value-title" for="permanente">Permanent</label>
+                <div class="cbi-value-field">
+                  <input type="checkbox" name="permanente" id="permanente" value="1" <%- if row.permanente=="1" then io.write(
+                  " checked='checked'") end -%> />
+                </div>
+              </div>
+              <div class="cbi-value">
+                <input type="hidden" name="mac" value="<%- io.write(row.dispositivo) -%>" />
+              </div>
+              <div class="cbi-page-actions">
+    	          <input id="guardar" type="submit" value="Save" class="cbi-button cbi-button-save"/>
+              </div>
+            </form>
+          </fieldset>
+        </div>
+      </div>
+      <script type="text/javascript" src="/editarDispositivos.js"></script>
+      <%-
+-- close everything
+cur:close() -- already closed because all the result set was consumed
+con:close()
+env:close()
+-%>
+        <%+footer%>

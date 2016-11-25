@@ -1,0 +1,15 @@
+#!/bin/sh /etc/rc.common
+# Latch init
+# Copyright (C) 2007 OpenWrt.org
+ 
+START=10
+ 
+start() {        
+	/root/Latch/Latch-OpenWRT.py& 1>/dev/null || :
+        # commands to launch application
+}                 
+ 
+stop() {         
+	kill -9 $(pgrep -f Latch-OpenWRT.py) 2>/dev/null || :
+        # commands to kill application 
+}

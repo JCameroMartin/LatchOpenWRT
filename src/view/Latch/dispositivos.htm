@@ -1,0 +1,78 @@
+<%-
+local driver = require "luasql.sqlite3"
+env = assert (driver.sqlite3())
+con = assert (env:connect("/root/Latch/Latch.db"))
+cur = assert (con:execute"SELECT alias, dispositivo, estado, permanente, ultimaConexion FROM Dispositivos")
+row = cur:fetch ({}, "a")
+-%>
+<%+header%>
+<% local eating = luci.model.uci.cursor():get("current", "ice", "flavor") %> 
+<link rel="stylesheet" href="/estilo.css"/>
+<div class="cbi-map" id="cbi-ice_cream">
+	<script type="text/javascript" src=""></script>
+	<h2><a id="content" name="content">Device Management</a></h2>
+	<div class="cbi-map-descr">Device manegement page similar to Latch functions</div>
+	<fieldset class="cbi-content">
+		<legend>Make MAC permanent</legend>
+		<form action="<%=REQUEST_URI%>" method="get" class="cbi-section-node cbi-section-node-tabbed">
+		  <div class="cbi-value">
+		  	<label class="cbi-value-title" for="alias">Alias </label>
+		  	<div class="cbi-value-field">
+			  <input class="" id="alias" type="text" name="alias"/><br/>
+		  	</div>
+		  </div>
+		  <div class="cbi-value">
+		  	<label class="cbi-value-title" for="mac">MAC </label>
+		  	<div class="cbi-value-field">
+			  <input class="" id="mac" type="text" name="mac" placeholder="a0:a0:a0:a0:a0:a0"/>
+			  <span id="msj"></span>
+			  <input id="anadir" type="submit" class="cbi-button cbi-button-add" style="width:200px; float:right;" value="Make MAC permanent"/>
+		  	</div>
+		  </div>
+		</form>
+	</fieldset>
+	<fieldset class="cbi-content">
+		<legend>Devices</legend>
+		<div class="cbi-section-node">
+		<table class="cbi-section-table" style="font-size:90%">
+			<tr class="cbi-section-table-titles">
+				<th>Alias</th>
+				<th>MAC</th>
+				<th>Status</th>
+				<th>Permanent</th>
+				<th>Last connection</th>
+				<th>Edit</th>
+			</tr>
+<%-
+while row do
+	io.write("<tr>") 
+	io.write("<td>"..row.alias.."</td>")
+	io.write("<td>"..row.dispositivo.."</td>")
+	if row.permanente == "1" then
+		io.write("<td>".."---".."</td>")
+		io.write("<td>Yes</td>")
+	else
+		io.write("<td>"..row.estado.."</td>")
+		io.write("<td>NO</td>")
+	end	
+	io.write("<td>"..row.ultimaConexion.."</td>")
+	-%>
+	<td><input type="button" class="cbi-button cbi-button-edit" style="width:100px" onclick="location.href='editarDispositivos?editar=<% io.write(row.dispositivo) %>'" value="Edit" id="<%- io.write(row.dispositivo) -%>" /></td>
+	<%-
+	io.write("</tr>")
+  -- reusing the table of results
+  row = cur:fetch (row, "a")
+end
+-%>
+		</table>
+		</div>
+	</fieldset>
+</div>
+<script type="text/javascript" src="/dispositivos.js"></script>
+<%-
+-- close everything
+cur:close() -- already closed because all the result set was consumed
+con:close()
+env:close()
+-%>
+<%+footer%>

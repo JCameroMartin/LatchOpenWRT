@@ -1,0 +1,75 @@
+<%-
+local driver = require "luasql.sqlite3"
+env = assert (driver.sqlite3())
+con = assert (env:connect("/root/Latch/Latch.db"))
+cur = assert (con:execute"SELECT applicationId, secretkey, tiempoComprobacion FROM Configuracion")
+row = cur:fetch ({}, "a")
+-%>
+<%+header%>
+<% local eating = luci.model.uci.cursor():get("current", "ice", "flavor") %>
+<link rel="stylesheet" href="/estilo.css"/>
+<div class="cbi-map" id="cbi-ice_cream">
+<h2><a id="content" name="content">Pair / Unpair</a></h2>
+<fieldset class="cbi-content">
+<%-
+if ((row.applicationId == nil) or (row.secretkey == nil) or (row.applicationId == "") or (row.secretkey == "") or (row.tiempoComprobacion == nil) or (row.tiempoComprobacion == 0) or (row.tiempoComprobacion == "")) then
+-%>
+<h2 style="background-color:red; text-align:center;">CAUTION: The plugin is not configured</h2>
+<%-
+else
+	cur:close()
+	cur = assert (con:execute"SELECT nombre, clave FROM Usuarios")
+	row = cur:fetch ({}, "a")
+if row == nil then
+-%>
+<form action="<%=REQUEST_URI%>" method="get">
+  <div class="cbi-value">
+  	<label class="cbi-value-title" for="usuario">Username</label>
+	<div class="cbi-value-field">
+	  <input id="nombre" type="text" name="usuario"/>
+	</div>
+  </div>
+  <div class="cbi-value">
+  	<label class="cbi-value-title" for="parear">Pair code</label>
+	<div class="cbi-value-field">
+		<input id="codigo" type="text" name="parear"/>
+		<span id="msj"></span>
+		<input id="parear" type="submit" value="Parear" style="float:right;" class="cbi-button"/>
+    </div>
+  </div>
+</form>
+<%-
+else
+-%>
+<table class="cbi-section-table" style="font-size:90%">
+	<tr class="cbi-section-table-titles">
+		<th>Username</th>
+		<th>Unpair</th>
+	</tr>
+	<form action="<%=REQUEST_URI%>">
+		<%-
+		while row do
+			io.write("<tr>") 
+			io.write("<td>"..row.nombre.."</td>")
+			io.write("<td><input type=".."submit".." name=".."desparear".." id="..row.nombre.." value="..row.nombre.." onclick="..'"'.."alert('Please, wait while we try to unpair your device. When the device is unpaired you can come to this page to pair a new one. The page will be reloaded after 30 seconds.');"..'"'.."/></td>")
+			io.write("</tr>")
+		  -- reusing the table of results
+		  row = cur:fetch (row, "a")
+		end
+		-%>
+	</form>
+</table>
+<%-
+end
+end
+-%>
+</fieldset>
+</div>
+<script type="text/javascript" src="/pareado.js"></script>
+<%-
+-- close everything
+cur:close()
+con:close()
+env:close()
+-%>
+<%+footer%>
