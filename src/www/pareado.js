@@ -15,7 +15,7 @@ function comprobarCampos(e){
         nombre.classList.add("valido");
         error1 = false;
     }
-    if(codigo.value == "" || /^\s*$/.test(codigo.value) || codigo.value.length !== 6){
+    if(codigo.value == "" || codigo.value.length !== 6){
         codigo.classList.add("vacio");
         codigo.classList.remove("valido");
         error2 = true;
